@@ -1,0 +1,2631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Shop Ledger</title>
+  <style>
+    :root {
+      --bg: #f3f5f7;
+      --surface: #ffffff;
+      --surface-alt: #f8fafc;
+      --surface-tint: #eef7f6;
+      --text: #0f172a;
+      --text-muted: #5b6878;
+      --border: #d7dfe8;
+      --grid-border: #cfd8e3;
+      --primary: #0f766e;
+      --primary-hover: #0d645d;
+      --primary-text: #ffffff;
+      --primary-soft: rgba(15, 118, 110, 0.12);
+      --accent: #d97706;
+      --pos: #15803d;
+      --pos-bg: rgba(21, 128, 61, 0.11);
+      --neg: #dc2626;
+      --neg-bg: rgba(220, 38, 38, 0.11);
+      --shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+      --radius: 12px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b1117;
+        --surface: #141d26;
+        --surface-alt: #1a2530;
+        --surface-tint: #132a29;
+        --text: #f1f5f9;
+        --text-muted: #94a3b8;
+        --border: #2a3746;
+        --grid-border: #324152;
+        --primary: #14b8a6;
+        --primary-hover: #2dd4bf;
+        --primary-text: #042f2e;
+        --primary-soft: rgba(20, 184, 166, 0.18);
+        --accent: #f59e0b;
+        --pos: #4ade80;
+        --pos-bg: rgba(74, 222, 128, 0.14);
+        --neg: #f87171;
+        --neg-bg: rgba(248, 113, 113, 0.16);
+        --shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 16px;
+      line-height: 1.4;
+      min-height: 100%;
+    }
+
+    button, input, textarea {
+      font-family: inherit;
+      font-size: 16px;
+      color: inherit;
+    }
+
+    input, textarea {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      min-height: 44px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-soft);
+    }
+
+    input[type="number"] {
+      font-variant-numeric: tabular-nums;
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    button {
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 10px;
+      min-height: 44px;
+      padding: 10px 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      touch-action: manipulation;
+      user-select: none;
+      transition: transform 0.08s ease, background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--primary-text);
+      border-color: var(--primary);
+    }
+
+    .btn-danger {
+      background: var(--neg-bg);
+      color: var(--neg);
+      border-color: rgba(220, 38, 38, 0.35);
+    }
+
+    .btn-pos {
+      background: var(--pos);
+      color: #ffffff;
+      border-color: var(--pos);
+    }
+
+    .btn-neg {
+      background: var(--neg);
+      color: #ffffff;
+      border-color: var(--neg);
+    }
+
+    .num {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Top Navigation Bar */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding-top: env(safe-area-inset-top);
+      box-shadow: var(--shadow);
+    }
+
+    .nav-tabs {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 4px 6px;
+      gap: 4px;
+    }
+
+    .nav-tab {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      min-height: 46px;
+      padding: 8px 4px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      position: relative;
+      white-space: nowrap;
+    }
+
+    .nav-tab.active {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .nav-tab.active::after {
+      content: "";
+      position: absolute;
+      left: 20%;
+      right: 20%;
+      bottom: 2px;
+      height: 3px;
+      border-radius: 99px;
+      background: var(--primary);
+    }
+
+    /* Main Container */
+    .main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 12px 12px calc(28px + env(safe-area-inset-bottom));
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin: 0 0 10px 0;
+    }
+
+    /* Date Bar */
+    .date-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .date-nav-btn {
+      min-width: 46px;
+      min-height: 46px;
+      font-size: 22px;
+      padding: 0 12px;
+    }
+
+    .date-display {
+      flex: 1;
+      min-width: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 46px;
+      padding: 6px 10px;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .today-badge {
+      background: var(--primary);
+      color: var(--primary-text);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .cal-toggle-btn {
+      min-height: 46px;
+      padding: 0 14px;
+      font-size: 15px;
+    }
+
+    .cal-toggle-btn.open {
+      background: var(--primary-soft);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    /* Calendar Panel */
+    .calendar-panel {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .calendar-panel[hidden] {
+      display: none;
+    }
+
+    .cal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .cal-month-title {
+      font-weight: 700;
+      font-size: 17px;
+      text-align: center;
+      flex: 1;
+    }
+
+    .cal-summary {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 4px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .cal-day {
+      min-height: 52px;
+      padding: 4px 2px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      font-weight: 600;
+      font-size: 14px;
+      overflow: hidden;
+    }
+
+    .cal-day.empty {
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .cal-day.has-data {
+      background: var(--surface-tint);
+      border-color: rgba(15, 118, 110, 0.35);
+    }
+
+    .cal-day.is-today {
+      border: 2px solid var(--accent);
+    }
+
+    .cal-day.is-selected {
+      background: var(--primary);
+      color: var(--primary-text);
+      border-color: var(--primary);
+    }
+
+    .cal-day-cash {
+      font-size: 10px;
+      line-height: 1.1;
+      font-weight: 700;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      opacity: 0.9;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cal-footer {
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    /* Opening Cash */
+    .opening-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .opening-row label {
+      font-weight: 700;
+      font-size: 16px;
+      flex: 1;
+    }
+
+    .opening-row input {
+      max-width: 170px;
+      text-align: right;
+      font-weight: 700;
+    }
+
+    /* Quick Items Bar */
+    .quick-bar-wrap {
+      margin-bottom: 10px;
+    }
+
+    .quick-bar-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+
+    .quick-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: thin;
+    }
+
+    .quick-chip {
+      flex: 0 0 auto;
+      min-height: 42px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: var(--surface-tint);
+      border: 1px solid rgba(15, 118, 110, 0.35);
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 15px;
+      white-space: nowrap;
+    }
+
+    /* Excel-like Spreadsheet Tables */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--grid-border);
+      border-radius: 10px;
+      background: var(--surface);
+    }
+
+    table.sheet-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      min-width: 560px;
+    }
+
+    table.sheet-table.exp-table {
+      min-width: 470px;
+    }
+
+    .sheet-table th,
+    .sheet-table td {
+      border: 1px solid var(--grid-border);
+      padding: 0;
+      vertical-align: middle;
+    }
+
+    .sheet-table th {
+      background: var(--surface-alt);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      padding: 9px 6px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .sheet-table th.center,
+    .sheet-table td.center {
+      text-align: center;
+    }
+
+    .sheet-table th.right {
+      text-align: right;
+    }
+
+    .sheet-table td.row-no {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--surface-alt);
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      padding: 4px 2px;
+    }
+
+    .sheet-table td input {
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      padding: 10px 7px;
+      min-height: 46px;
+      width: 100%;
+      font-size: 16px;
+      box-shadow: none;
+    }
+
+    .sheet-table td input:focus {
+      background: var(--primary-soft);
+      box-shadow: inset 0 0 0 2px var(--primary);
+    }
+
+    .sheet-table td input.num-input {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .del-cell-btn {
+      width: 100%;
+      min-height: 46px;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      color: var(--neg);
+      font-size: 18px;
+      font-weight: 700;
+      padding: 0;
+    }
+
+    .del-cell-btn:hover {
+      background: var(--neg-bg);
+    }
+
+    /* Totals & Cash Left Box */
+    .totals-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .total-pill {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .total-pill .lbl {
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .total-pill .val {
+      font-size: 18px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cash-left-box {
+      margin-top: 10px;
+      border-radius: 12px;
+      padding: 14px;
+      border: 2px solid var(--pos);
+      background: var(--pos-bg);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .cash-left-box.negative {
+      border-color: var(--neg);
+      background: var(--neg-bg);
+      color: var(--neg);
+    }
+
+    .cash-left-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .cash-left-label {
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .cash-left-val {
+      font-size: 24px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cash-left-sub {
+      font-size: 13px;
+      opacity: 0.85;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .day-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+
+    /* Reports Tab */
+    .month-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .month-bar-title {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .stat-box {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 8px;
+      text-align: center;
+    }
+
+    .stat-box .lbl {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-box .val {
+      font-size: 18px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      word-break: break-word;
+    }
+
+    .stat-box.neg .val {
+      color: var(--neg);
+    }
+
+    .stat-box.pos .val {
+      color: var(--pos);
+    }
+
+    .list-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .list-table th,
+    .list-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    .list-table th {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .list-table th.right,
+    .list-table td.right {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .empty-note {
+      color: var(--text-muted);
+      font-size: 15px;
+      padding: 12px 4px;
+      text-align: center;
+    }
+
+    /* Udhaar Tab */
+    .field-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .field-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .btn-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .udhaar-total-box {
+      background: var(--surface-tint);
+      border: 2px solid var(--primary);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .udhaar-total-box .lbl {
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .udhaar-total-box .val {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .person-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 4px;
+      border-bottom: 1px solid var(--border);
+      gap: 10px;
+    }
+
+    .person-row:last-child {
+      border-bottom: none;
+    }
+
+    .person-name {
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .person-sub {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .person-sub.owe {
+      color: var(--neg);
+    }
+
+    .person-sub.adv {
+      color: var(--pos);
+    }
+
+    .person-sub.settled {
+      color: var(--text-muted);
+    }
+
+    .person-bal {
+      font-size: 17px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 4px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    .history-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .history-title {
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .history-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .history-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-gave {
+      color: var(--neg);
+      font-weight: 700;
+    }
+
+    .badge-recv {
+      color: var(--pos);
+      font-weight: 700;
+    }
+
+    .small-del-btn {
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0;
+      color: var(--neg);
+      border-color: var(--border);
+      background: var(--surface-alt);
+    }
+
+    /* Search Tab */
+    .search-result-btn {
+      width: 100%;
+      text-align: left;
+      justify-content: space-between;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      min-height: 56px;
+    }
+
+    .search-res-left {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .search-res-main {
+      font-weight: 700;
+      font-size: 15px;
+      word-break: break-word;
+    }
+
+    .search-res-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .search-res-amt {
+      font-weight: 800;
+      font-size: 16px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      color: var(--primary);
+    }
+
+    /* More Tab */
+    textarea.code-box {
+      min-height: 110px;
+      font-family: var(--mono);
+      font-size: 16px;
+      resize: vertical;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .status-msg {
+      margin-top: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 10px;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .status-msg.show {
+      display: block;
+    }
+
+    .status-msg.ok {
+      background: var(--pos-bg);
+      color: var(--pos);
+    }
+
+    .status-msg.err {
+      background: var(--neg-bg);
+      color: var(--neg);
+    }
+
+    /* Full-Screen PIN Lock */
+    .lock-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      padding-top: calc(20px + env(safe-area-inset-top));
+      padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    }
+
+    .lock-screen[hidden] {
+      display: none;
+    }
+
+    .lock-card {
+      width: 100%;
+      max-width: 340px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .lock-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin: 0 0 6px 0;
+    }
+
+    .lock-sub {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin: 0 0 16px 0;
+    }
+
+    .lock-input {
+      text-align: center;
+      font-size: 22px;
+      letter-spacing: 6px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .key-btn {
+      min-height: 52px;
+      font-size: 20px;
+      font-weight: 700;
+      background: var(--surface-alt);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PIN Lock Screen -->
+  <div id="lock-screen" class="lock-screen" hidden>
+    <div class="lock-card">
+      <h1 class="lock-title">Shop Ledger</h1>
+      <p class="lock-sub">Enter your PIN to unlock</p>
+      <input id="lock-pin-input" class="lock-input" type="password" inputmode="numeric" autocomplete="off" placeholder="••••">
+      <button id="lock-unlock-btn" type="button" class="btn-primary" style="width:100%">Unlock</button>
+      <div id="lock-error" class="status-msg err"></div>
+      <div id="lock-keypad" class="keypad">
+        <button type="button" class="key-btn" data-key="1">1</button>
+        <button type="button" class="key-btn" data-key="2">2</button>
+        <button type="button" class="key-btn" data-key="3">3</button>
+        <button type="button" class="key-btn" data-key="4">4</button>
+        <button type="button" class="key-btn" data-key="5">5</button>
+        <button type="button" class="key-btn" data-key="6">6</button>
+        <button type="button" class="key-btn" data-key="7">7</button>
+        <button type="button" class="key-btn" data-key="8">8</button>
+        <button type="button" class="key-btn" data-key="9">9</button>
+        <button type="button" class="key-btn" data-key="clear">C</button>
+        <button type="button" class="key-btn" data-key="0">0</button>
+        <button type="button" class="key-btn" data-key="back">⌫</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Navigation -->
+  <header class="topbar">
+    <nav class="nav-tabs" aria-label="Main Navigation">
+      <button type="button" class="nav-tab active" data-tab="sheet">Sheet</button>
+      <button type="button" class="nav-tab" data-tab="reports">Reports</button>
+      <button type="button" class="nav-tab" data-tab="udhaar">Udhaar</button>
+      <button type="button" class="nav-tab" data-tab="search">Search</button>
+      <button type="button" class="nav-tab" data-tab="more">More</button>
+    </nav>
+  </header>
+
+  <main class="main">
+    <!-- 1) SHEET TAB -->
+    <section id="tab-sheet" class="tab-panel active">
+      <div class="card">
+        <div class="date-bar">
+          <button type="button" id="prev-day-btn" class="date-nav-btn" aria-label="Previous day">‹</button>
+          <div class="date-display">
+            <span id="current-date-text"></span>
+            <span id="today-badge" class="today-badge" hidden>Today</span>
+          </div>
+          <button type="button" id="next-day-btn" class="date-nav-btn" aria-label="Next day">›</button>
+          <button type="button" id="toggle-cal-btn" class="cal-toggle-btn">Calendar</button>
+        </div>
+
+        <div id="calendar-panel" class="calendar-panel" hidden>
+          <div class="cal-header">
+            <button type="button" id="cal-prev-month" class="date-nav-btn" aria-label="Previous month">‹</button>
+            <div id="cal-month-title" class="cal-month-title"></div>
+            <button type="button" id="cal-next-month" class="date-nav-btn" aria-label="Next month">›</button>
+          </div>
+          <div id="cal-summary" class="cal-summary"></div>
+          <div class="cal-weekdays">
+            <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+          </div>
+          <div id="cal-grid" class="cal-grid"></div>
+          <div class="cal-footer">
+            <button type="button" id="cal-goto-today" class="btn-primary">Go to today</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="opening-row">
+          <label for="opening-cash-input">Opening cash</label>
+          <input id="opening-cash-input" type="number" inputmode="decimal" step="any" placeholder="0">
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">Sales</h2>
+        <div class="quick-bar-wrap">
+          <div class="quick-bar-label">Quick items</div>
+          <div id="quick-items-bar" class="quick-bar"></div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="sheet-table">
+            <colgroup>
+              <col style="width: 36px;">
+              <col style="width: 78px;">
+              <col style="width: 90px;">
+              <col style="width: 145px;">
+              <col style="width: 70px;">
+              <col style="width: 95px;">
+              <col style="width: 46px;">
+            </colgroup>
+            <thead>
+              <tr>
+                <th class="center">No</th>
+                <th>Slip No</th>
+                <th class="right">Cash</th>
+                <th>Item</th>
+                <th class="right">Qty</th>
+                <th class="right">Amount</th>
+                <th class="center"></th>
+              </tr>
+            </thead>
+            <tbody id="sales-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="totals-strip">
+          <div class="total-pill">
+            <span class="lbl">Total Cash</span>
+            <span id="total-cash-val" class="val">0</span>
+          </div>
+          <div class="total-pill">
+            <span class="lbl">Total Items Amount</span>
+            <span id="total-items-amt-val" class="val">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">Expenses</h2>
+        <div class="table-wrap">
+          <table class="sheet-table exp-table">
+            <colgroup>
+              <col style="width: 36px;">
+              <col style="width: 155px;">
+              <col style="width: 125px;">
+              <col style="width: 100px;">
+              <col style="width: 46px;">
+            </colgroup>
+            <thead>
+              <tr>
+                <th class="center">No</th>
+                <th>What bought</th>
+                <th>Paid to</th>
+                <th class="right">Amount</th>
+                <th class="center"></th>
+              </tr>
+            </thead>
+            <tbody id="expenses-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="totals-strip">
+          <div class="total-pill">
+            <span class="lbl">Total Expenses</span>
+            <span id="total-expenses-val" class="val">0</span>
+          </div>
+        </div>
+
+        <div id="cash-left-box" class="cash-left-box">
+          <div class="cash-left-top">
+            <span class="cash-left-label">Cash Left (Opening + Cash − Expenses)</span>
+            <span id="cash-left-val" class="cash-left-val">0</span>
+          </div>
+          <div id="cash-left-sub" class="cash-left-sub">0 + 0 − 0</div>
+        </div>
+
+        <div class="day-actions">
+          <button type="button" id="clear-day-btn" class="btn-danger">Clear this day</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2) REPORTS TAB -->
+    <section id="tab-reports" class="tab-panel">
+      <div class="card">
+        <div class="month-bar">
+          <button type="button" id="rep-prev-month" class="date-nav-btn" aria-label="Previous month">‹</button>
+          <div id="rep-month-title" class="month-bar-title"></div>
+          <button type="button" id="rep-next-month" class="date-nav-btn" aria-label="Next month">›</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">Month Totals</h2>
+        <div class="stat-grid">
+          <div class="stat-box">
+            <div class="lbl">Cash</div>
+            <div id="rep-cash" class="val">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="lbl">Spent</div>
+            <div id="rep-spent" class="val">0</div>
+          </div>
+          <div id="rep-left-box" class="stat-box pos">
+            <div class="lbl">Left</div>
+            <div id="rep-left" class="val">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">Items sold</h2>
+        <div id="rep-items-wrap"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">Paid to</h2>
+        <div id="rep-paid-wrap"></div>
+      </div>
+    </section>
+
+    <!-- 3) UDHAAR (CREDIT) TAB -->
+    <section id="tab-udhaar" class="tab-panel">
+      <div class="card">
+        <h2 class="section-title">Add Udhaar Entry</h2>
+        <div class="field-stack">
+          <div class="field-group">
+            <label for="udhaar-name-input">Name</label>
+            <input id="udhaar-name-input" type="text" list="udhaar-names-datalist" placeholder="Customer name" autocomplete="off">
+          </div>
+          <div class="field-group">
+            <label for="udhaar-amount-input">Amount</label>
+            <input id="udhaar-amount-input" type="number" inputmode="decimal" step="any" placeholder="0">
+          </div>
+          <div class="btn-row-2">
+            <button type="button" id="udhaar-gave-btn" class="btn-neg">Gave credit</button>
+            <button type="button" id="udhaar-recv-btn" class="btn-pos">Received back</button>
+          </div>
+          <div id="udhaar-status" class="status-msg"></div>
+        </div>
+      </div>
+
+      <div class="udhaar-total-box">
+        <span class="lbl">Total to receive</span>
+        <span id="udhaar-total-receive" class="val">0</span>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">Balance by person</h2>
+        <div id="udhaar-balances-list"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">History</h2>
+        <div id="udhaar-history-list"></div>
+      </div>
+    </section>
+
+    <!-- 4) SEARCH TAB -->
+    <section id="tab-search" class="tab-panel">
+      <div class="card">
+        <h2 class="section-title">Search All Days</h2>
+        <input id="search-input" type="search" placeholder="Search slip no, item, qty, paid to, what bought, udhaar name...">
+      </div>
+      <div class="card">
+        <div id="search-count" class="section-title">Results</div>
+        <div id="search-results"></div>
+      </div>
+    </section>
+
+    <!-- 5) MORE TAB -->
+    <section id="tab-more" class="tab-panel">
+      <div class="card">
+        <h2 class="section-title">Backup Code</h2>
+        <button type="button" id="gen-backup-btn" class="btn-primary">Generate Backup Code</button>
+        <textarea id="backup-textarea" class="code-box" readonly style="margin-top:8px" placeholder="Tap Generate Backup Code to view JSON..."></textarea>
+        <div class="action-row">
+          <button type="button" id="copy-backup-btn">Copy Backup</button>
+        </div>
+        <div id="backup-status" class="status-msg"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">Excel Text</h2>
+        <button type="button" id="gen-excel-btn" class="btn-primary">Generate Excel Text</button>
+        <textarea id="excel-textarea" class="code-box" readonly style="margin-top:8px" placeholder="Tap Generate Excel Text for tab-separated data..."></textarea>
+        <div class="action-row">
+          <button type="button" id="copy-excel-btn">Copy Excel Text</button>
+        </div>
+        <div id="excel-status" class="status-msg"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">Restore</h2>
+        <textarea id="restore-textarea" class="code-box" placeholder="Paste backup JSON code here..."></textarea>
+        <div class="action-row">
+          <button type="button" id="restore-btn" class="btn-danger">Restore</button>
+        </div>
+        <div id="restore-status" class="status-msg"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">Quick Items Editor</h2>
+        <textarea id="quick-editor-textarea" class="code-box" placeholder="Milk, Bread, Eggs, Sugar, Tea"></textarea>
+        <div class="action-row">
+          <button type="button" id="save-quick-btn" class="btn-primary">Save Quick Items</button>
+        </div>
+        <div id="quick-status" class="status-msg"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">PIN Lock</h2>
+        <div class="field-group">
+          <label for="pin-set-input">Set PIN (minimum 3 digits)</label>
+          <input id="pin-set-input" type="password" inputmode="numeric" autocomplete="off" placeholder="Enter 3+ digits">
+        </div>
+        <div class="action-row">
+          <button type="button" id="set-pin-btn" class="btn-primary">Set PIN</button>
+          <button type="button" id="remove-pin-btn" class="btn-danger">Remove PIN</button>
+          <button type="button" id="lock-now-btn">Lock now</button>
+        </div>
+        <div id="pin-status" class="status-msg"></div>
+      </div>
+    </section>
+  </main>
+
+  <datalist id="items-datalist"></datalist>
+  <datalist id="udhaar-names-datalist"></datalist>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var STORAGE_KEYS = {
+        days: "shop_ledger_days_v1",
+        quickItems: "shop_ledger_quick_items_v1",
+        learnedItems: "shop_ledger_learned_items_v1",
+        udhaar: "shop_ledger_udhaar_v1",
+        pin: "shop_ledger_pin_v1"
+      };
+
+      var DEFAULT_QUICK_ITEMS = ["Milk", "Bread", "Eggs", "Sugar", "Tea", "Rice"];
+
+      var MONTH_NAMES = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
+      var MONTH_SHORT = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+      ];
+      var DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+      // Safe localStorage wrappers
+      function storageGet(key, fallback) {
+        try {
+          var raw = window.localStorage.getItem(key);
+          if (raw === null || raw === undefined) return fallback;
+          return raw;
+        } catch (e) {
+          return fallback;
+        }
+      }
+
+      function storageSet(key, value) {
+        try {
+          window.localStorage.setItem(key, value);
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      function storageRemove(key) {
+        try {
+          window.localStorage.removeItem(key);
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      function loadJson(key, fallback) {
+        try {
+          var raw = storageGet(key, null);
+          if (!raw) return fallback;
+          var parsed = JSON.parse(raw);
+          return parsed !== null && parsed !== undefined ? parsed : fallback;
+        } catch (e) {
+          return fallback;
+        }
+      }
+
+      function saveJson(key, obj) {
+        try {
+          return storageSet(key, JSON.stringify(obj));
+        } catch (e) {
+          return false;
+        }
+      }
+
+      // Date helpers (local timezone, YYYY-MM-DD)
+      function pad2(n) {
+        return n < 10 ? "0" + n : String(n);
+      }
+
+      function dateToKey(d) {
+        return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+      }
+
+      function parseDateKey(key) {
+        var parts = key.split("-");
+        return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      }
+
+      function getTodayKey() {
+        return dateToKey(new Date());
+      }
+
+      function shiftDateKey(key, deltaDays) {
+        var d = parseDateKey(key);
+        d.setDate(d.getDate() + deltaDays);
+        return dateToKey(d);
+      }
+
+      function formatDateDisplay(key) {
+        var d = parseDateKey(key);
+        return DAY_SHORT[d.getDay()] + ", " + d.getDate() + " " + MONTH_SHORT[d.getMonth()] + " " + d.getFullYear();
+      }
+
+      function monthKeyOf(year, monthIndex) {
+        return year + "-" + pad2(monthIndex + 1);
+      }
+
+      // Number formatting & parsing
+      function toNum(v) {
+        if (v === "" || v === null || v === undefined) return 0;
+        var n = Number(v);
+        return isFinite(n) ? n : 0;
+      }
+
+      function fmt(n) {
+        var num = toNum(n);
+        if (Object.is(num, -0) || Math.abs(num) < 1e-9) num = 0;
+        return num.toLocaleString("en-US", {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 2
+        });
+      }
+
+      function esc(str) {
+        return String(str == null ? "" : str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      // Application State
+      var state = {
+        days: loadJson(STORAGE_KEYS.days, {}),
+        quickItems: loadJson(STORAGE_KEYS.quickItems, null),
+        learnedItems: loadJson(STORAGE_KEYS.learnedItems, []),
+        udhaar: loadJson(STORAGE_KEYS.udhaar, []),
+        pin: storageGet(STORAGE_KEYS.pin, ""),
+        currentDate: getTodayKey(),
+        calYear: new Date().getFullYear(),
+        calMonth: new Date().getMonth(),
+        calOpen: false,
+        repYear: new Date().getFullYear(),
+        repMonth: new Date().getMonth(),
+        activeTab: "sheet"
+      };
+
+      if (!Array.isArray(state.quickItems)) {
+        state.quickItems = DEFAULT_QUICK_ITEMS.slice();
+        saveJson(STORAGE_KEYS.quickItems, state.quickItems);
+      }
+      if (!Array.isArray(state.learnedItems)) state.learnedItems = [];
+      if (!Array.isArray(state.udhaar)) state.udhaar = [];
+      if (!state.days || typeof state.days !== "object" || Array.isArray(state.days)) state.days = {};
+
+      // Row helpers
+      function emptySalesRow() {
+        return { slip: "", cash: "", item: "", qty: "", amount: "" };
+      }
+
+      function emptyExpenseRow() {
+        return { what: "", paidTo: "", amount: "" };
+      }
+
+      function isSalesFilled(r) {
+        return !!(
+          String(r.slip || "").trim() ||
+          String(r.cash || "").trim() ||
+          String(r.item || "").trim() ||
+          String(r.qty || "").trim() ||
+          String(r.amount || "").trim()
+        );
+      }
+
+      function isExpenseFilled(r) {
+        return !!(
+          String(r.what || "").trim() ||
+          String(r.paidTo || "").trim() ||
+          String(r.amount || "").trim()
+        );
+      }
+
+      function ensureDay(dateKey) {
+        if (!state.days[dateKey]) {
+          state.days[dateKey] = {
+            openingCash: "",
+            sales: [emptySalesRow()],
+            expenses: [emptyExpenseRow()]
+          };
+        }
+        var d = state.days[dateKey];
+        if (!Array.isArray(d.sales) || d.sales.length === 0) {
+          d.sales = [emptySalesRow()];
+        } else if (isSalesFilled(d.sales[d.sales.length - 1])) {
+          d.sales.push(emptySalesRow());
+        }
+        if (!Array.isArray(d.expenses) || d.expenses.length === 0) {
+          d.expenses = [emptyExpenseRow()];
+        } else if (isExpenseFilled(d.expenses[d.expenses.length - 1])) {
+          d.expenses.push(emptyExpenseRow());
+        }
+        return d;
+      }
+
+      function dayHasData(d) {
+        if (!d) return false;
+        if (String(d.openingCash || "").trim() !== "") return true;
+        if (Array.isArray(d.sales) && d.sales.some(isSalesFilled)) return true;
+        if (Array.isArray(d.expenses) && d.expenses.some(isExpenseFilled)) return true;
+        return false;
+      }
+
+      function computeDayTotals(d) {
+        var opening = toNum(d && d.openingCash);
+        var cash = 0;
+        var itemsAmt = 0;
+        var expenses = 0;
+        if (d && Array.isArray(d.sales)) {
+          for (var i = 0; i < d.sales.length; i++) {
+            cash += toNum(d.sales[i].cash);
+            itemsAmt += toNum(d.sales[i].amount);
+          }
+        }
+        if (d && Array.isArray(d.expenses)) {
+          for (var j = 0; j < d.expenses.length; j++) {
+            expenses += toNum(d.expenses[j].amount);
+          }
+        }
+        return {
+          opening: opening,
+          cash: cash,
+          itemsAmt: itemsAmt,
+          expenses: expenses,
+          left: opening + cash - expenses
+        };
+      }
+
+      function saveDays() {
+        // Prune completely empty days except keep memory tidy in storage
+        var clean = {};
+        var keys = Object.keys(state.days);
+        for (var i = 0; i < keys.length; i++) {
+          var k = keys[i];
+          var d = state.days[k];
+          if (dayHasData(d)) {
+            clean[k] = {
+              openingCash: d.openingCash === undefined ? "" : d.openingCash,
+              sales: (d.sales || []).filter(isSalesFilled),
+              expenses: (d.expenses || []).filter(isExpenseFilled)
+            };
+          }
+        }
+        saveJson(STORAGE_KEYS.days, clean);
+      }
+
+      // Autocomplete & Quick Items
+      function getAllKnownItems() {
+        var seen = {};
+        var out = [];
+        function add(name) {
+          var t = String(name || "").trim();
+          if (!t) return;
+          var low = t.toLowerCase();
+          if (!seen[low]) {
+            seen[low] = true;
+            out.push(t);
+          }
+        }
+        state.quickItems.forEach(add);
+        state.learnedItems.forEach(add);
+        var dayKeys = Object.keys(state.days);
+        for (var i = 0; i < dayKeys.length; i++) {
+          var s = state.days[dayKeys[i]].sales || [];
+          for (var j = 0; j < s.length; j++) add(s[j].item);
+        }
+        return out;
+      }
+
+      function renderItemsDatalist() {
+        var dl = document.getElementById("items-datalist");
+        var items = getAllKnownItems();
+        dl.innerHTML = items.map(function (it) {
+          return '<option value="' + esc(it) + '"></option>';
+        }).join("");
+      }
+
+      function learnItem(name) {
+        var t = String(name || "").trim();
+        if (!t) return;
+        var low = t.toLowerCase();
+        var exists = state.learnedItems.some(function (x) { return x.toLowerCase() === low; }) ||
+                     state.quickItems.some(function (x) { return x.toLowerCase() === low; });
+        if (!exists) {
+          state.learnedItems.push(t);
+          saveJson(STORAGE_KEYS.learnedItems, state.learnedItems);
+          renderItemsDatalist();
+        }
+      }
+
+      function renderQuickItemsBar() {
+        var bar = document.getElementById("quick-items-bar");
+        if (!state.quickItems.length) {
+          bar.innerHTML = '<span style="color:var(--text-muted);font-size:14px;">No quick items (edit in More)</span>';
+          return;
+        }
+        bar.innerHTML = state.quickItems.map(function (item) {
+          return '<button type="button" class="quick-chip" data-quick="' + esc(item) + '">' + esc(item) + '</button>';
+        }).join("");
+      }
+
+      // DOM Builders for Spreadsheet Rows (for incremental append without losing focus)
+      function createSalesRowEl(idx, row) {
+        var tr = document.createElement("tr");
+        tr.setAttribute("data-idx", String(idx));
+        tr.innerHTML =
+          '<td class="row-no">' + (idx + 1) + '</td>' +
+          '<td><input type="text" enterkeyhint="next" data-field="slip" value="' + esc(row.slip) + '" aria-label="Slip No"></td>' +
+          '<td><input type="number" class="num-input" inputmode="decimal" step="any" enterkeyhint="next" data-field="cash" value="' + esc(row.cash) + '" aria-label="Cash"></td>' +
+          '<td><input type="text" list="items-datalist" enterkeyhint="next" data-field="item" value="' + esc(row.item) + '" aria-label="Item"></td>' +
+          '<td><input type="number" class="num-input" inputmode="decimal" step="any" enterkeyhint="next" data-field="qty" value="' + esc(row.qty) + '" aria-label="Qty"></td>' +
+          '<td><input type="number" class="num-input" inputmode="decimal" step="any" enterkeyhint="next" data-field="amount" value="' + esc(row.amount) + '" aria-label="Amount"></td>' +
+          '<td class="center"><button type="button" class="del-cell-btn" data-action="del-sales" aria-label="Delete row">✕</button></td>';
+        return tr;
+      }
+
+      function createExpenseRowEl(idx, row) {
+        var tr = document.createElement("tr");
+        tr.setAttribute("data-idx", String(idx));
+        tr.innerHTML =
+          '<td class="row-no">' + (idx + 1) + '</td>' +
+          '<td><input type="text" enterkeyhint="next" data-field="what" value="' + esc(row.what) + '" aria-label="What bought"></td>' +
+          '<td><input type="text" enterkeyhint="next" data-field="paidTo" value="' + esc(row.paidTo) + '" aria-label="Paid to"></td>' +
+          '<td><input type="number" class="num-input" inputmode="decimal" step="any" enterkeyhint="next" data-field="amount" value="' + esc(row.amount) + '" aria-label="Amount"></td>' +
+          '<td class="center"><button type="button" class="del-cell-btn" data-action="del-exp" aria-label="Delete row">✕</button></td>';
+        return tr;
+      }
+
+      function updateDayTotalsUI() {
+        var d = ensureDay(state.currentDate);
+        var t = computeDayTotals(d);
+        document.getElementById("total-cash-val").textContent = fmt(t.cash);
+        document.getElementById("total-items-amt-val").textContent = fmt(t.itemsAmt);
+        document.getElementById("total-expenses-val").textContent = fmt(t.expenses);
+        document.getElementById("cash-left-val").textContent = fmt(t.left);
+        document.getElementById("cash-left-sub").textContent =
+          fmt(t.opening) + " + " + fmt(t.cash) + " − " + fmt(t.expenses);
+        var box = document.getElementById("cash-left-box");
+        if (t.left < 0) {
+          box.classList.add("negative");
+        } else {
+          box.classList.remove("negative");
+        }
+        if (state.calOpen) {
+          renderCalendar();
+        }
+      }
+
+      function renderSheet() {
+        var d = ensureDay(state.currentDate);
+        var todayKey = getTodayKey();
+        document.getElementById("current-date-text").textContent = formatDateDisplay(state.currentDate);
+        document.getElementById("today-badge").hidden = (state.currentDate !== todayKey);
+
+        var openInp = document.getElementById("opening-cash-input");
+        openInp.value = d.openingCash === undefined || d.openingCash === null ? "" : String(d.openingCash);
+
+        var salesTbody = document.getElementById("sales-tbody");
+        salesTbody.innerHTML = "";
+        for (var i = 0; i < d.sales.length; i++) {
+          salesTbody.appendChild(createSalesRowEl(i, d.sales[i]));
+        }
+
+        var expTbody = document.getElementById("expenses-tbody");
+        expTbody.innerHTML = "";
+        for (var j = 0; j < d.expenses.length; j++) {
+          expTbody.appendChild(createExpenseRowEl(j, d.expenses[j]));
+        }
+
+        renderQuickItemsBar();
+        renderItemsDatalist();
+        updateDayTotalsUI();
+        if (state.calOpen) renderCalendar();
+      }
+
+      // Calendar rendering
+      function computeMonthTotals(year, monthIndex) {
+        var prefix = monthKeyOf(year, monthIndex);
+        var cash = 0;
+        var spent = 0;
+        var keys = Object.keys(state.days);
+        for (var i = 0; i < keys.length; i++) {
+          var k = keys[i];
+          if (k.indexOf(prefix) === 0) {
+            var d = state.days[k];
+            var t = computeDayTotals(d);
+            cash += t.cash;
+            spent += t.expenses;
+          }
+        }
+        return { cash: cash, spent: spent, left: cash - spent };
+      }
+
+      function renderCalendar() {
+        var y = state.calYear;
+        var m = state.calMonth;
+        document.getElementById("cal-month-title").textContent = MONTH_NAMES[m] + " " + y;
+
+        var mt = computeMonthTotals(y, m);
+        document.getElementById("cal-summary").textContent =
+          "Cash: " + fmt(mt.cash) + " | Spent: " + fmt(mt.spent) + " | Left: " + fmt(mt.left);
+
+        var firstDay = new Date(y, m, 1).getDay();
+        var daysInMonth = new Date(y, m + 1, 0).getDate();
+        var todayKey = getTodayKey();
+        var grid = document.getElementById("cal-grid");
+        var html = "";
+
+        for (var b = 0; b < firstDay; b++) {
+          html += '<div class="cal-day empty"></div>';
+        }
+        for (var dayNum = 1; dayNum <= daysInMonth; dayNum++) {
+          var key = y + "-" + pad2(m + 1) + "-" + pad2(dayNum);
+          var d = state.days[key];
+          var has = dayHasData(d);
+          var cls = "cal-day";
+          if (has) cls += " has-data";
+          if (key === todayKey) cls += " is-today";
+          if (key === state.currentDate) cls += " is-selected";
+
+          var cashHtml = "";
+          if (has) {
+            var tot = computeDayTotals(d);
+            cashHtml = '<span class="cal-day-cash">' + esc(fmt(tot.cash)) + '</span>';
+          }
+          html += '<button type="button" class="' + cls + '" data-cal-date="' + key + '">' +
+            '<span>' + dayNum + '</span>' + cashHtml + '</button>';
+        }
+        grid.innerHTML = html;
+      }
+
+      // Sheet Event Listeners (Event Delegation!)
+      document.getElementById("prev-day-btn").addEventListener("click", function () {
+        state.currentDate = shiftDateKey(state.currentDate, -1);
+        var d = parseDateKey(state.currentDate);
+        state.calYear = d.getFullYear();
+        state.calMonth = d.getMonth();
+        renderSheet();
+      });
+
+      document.getElementById("next-day-btn").addEventListener("click", function () {
+        state.currentDate = shiftDateKey(state.currentDate, 1);
+        var d = parseDateKey(state.currentDate);
+        state.calYear = d.getFullYear();
+        state.calMonth = d.getMonth();
+        renderSheet();
+      });
+
+      document.getElementById("toggle-cal-btn").addEventListener("click", function () {
+        state.calOpen = !state.calOpen;
+        var panel = document.getElementById("calendar-panel");
+        var btn = document.getElementById("toggle-cal-btn");
+        panel.hidden = !state.calOpen;
+        if (state.calOpen) {
+          btn.classList.add("open");
+          var d = parseDateKey(state.currentDate);
+          state.calYear = d.getFullYear();
+          state.calMonth = d.getMonth();
+          renderCalendar();
+        } else {
+          btn.classList.remove("open");
+        }
+      });
+
+      document.getElementById("cal-prev-month").addEventListener("click", function () {
+        state.calMonth -= 1;
+        if (state.calMonth < 0) {
+          state.calMonth = 11;
+          state.calYear -= 1;
+        }
+        renderCalendar();
+      });
+
+      document.getElementById("cal-next-month").addEventListener("click", function () {
+        state.calMonth += 1;
+        if (state.calMonth > 11) {
+          state.calMonth = 0;
+          state.calYear += 1;
+        }
+        renderCalendar();
+      });
+
+      document.getElementById("cal-goto-today").addEventListener("click", function () {
+        state.currentDate = getTodayKey();
+        var now = new Date();
+        state.calYear = now.getFullYear();
+        state.calMonth = now.getMonth();
+        renderSheet();
+      });
+
+      document.getElementById("cal-grid").addEventListener("click", function (e) {
+        var btn = e.target.closest("[data-cal-date]");
+        if (!btn) return;
+        state.currentDate = btn.getAttribute("data-cal-date");
+        renderSheet();
+      });
+
+      document.getElementById("opening-cash-input").addEventListener("input", function (e) {
+        var d = ensureDay(state.currentDate);
+        d.openingCash = e.target.value;
+        saveDays();
+        updateDayTotalsUI();
+      });
+
+      // Quick items tap: fills Item cell of last empty row & focuses Qty
+      document.getElementById("quick-items-bar").addEventListener("click", function (e) {
+        var btn = e.target.closest("[data-quick]");
+        if (!btn) return;
+        var itemName = btn.getAttribute("data-quick");
+        var d = ensureDay(state.currentDate);
+        var salesTbody = document.getElementById("sales-tbody");
+
+        var targetIdx = -1;
+        for (var i = d.sales.length - 1; i >= 0; i--) {
+          if (!isSalesFilled(d.sales[i])) {
+            targetIdx = i;
+            break;
+          }
+        }
+        if (targetIdx === -1) {
+          d.sales.push(emptySalesRow());
+          targetIdx = d.sales.length - 1;
+          salesTbody.appendChild(createSalesRowEl(targetIdx, d.sales[targetIdx]));
+        }
+
+        d.sales[targetIdx].item = itemName;
+        var tr = salesTbody.querySelector('tr[data-idx="' + targetIdx + '"]');
+        if (tr) {
+          var itemInput = tr.querySelector('input[data-field="item"]');
+          if (itemInput) itemInput.value = itemName;
+          var qtyInput = tr.querySelector('input[data-field="qty"]');
+          if (qtyInput) qtyInput.focus();
+        }
+
+        if (targetIdx === d.sales.length - 1 && isSalesFilled(d.sales[targetIdx])) {
+          d.sales.push(emptySalesRow());
+          salesTbody.appendChild(createSalesRowEl(d.sales.length - 1, d.sales[d.sales.length - 1]));
+        }
+
+        saveDays();
+        updateDayTotalsUI();
+      });
+
+      // Sales Table Delegation (input + change + click)
+      var salesTbody = document.getElementById("sales-tbody");
+      salesTbody.addEventListener("input", function (e) {
+        var inp = e.target;
+        if (!inp || inp.tagName !== "INPUT") return;
+        var tr = inp.closest("tr");
+        if (!tr) return;
+        var idx = Number(tr.getAttribute("data-idx"));
+        var field = inp.getAttribute("data-field");
+        var d = ensureDay(state.currentDate);
+        if (!d.sales[idx]) return;
+
+        d.sales[idx][field] = inp.value;
+        saveDays();
+        updateDayTotalsUI();
+
+        if (idx === d.sales.length - 1 && isSalesFilled(d.sales[idx])) {
+          d.sales.push(emptySalesRow());
+          salesTbody.appendChild(createSalesRowEl(d.sales.length - 1, d.sales[d.sales.length - 1]));
+        }
+      });
+
+      salesTbody.addEventListener("change", function (e) {
+        var inp = e.target;
+        if (inp && inp.getAttribute("data-field") === "item") {
+          learnItem(inp.value);
+        }
+      });
+
+      salesTbody.addEventListener("click", function (e) {
+        var btn = e.target.closest('[data-action="del-sales"]');
+        if (!btn) return;
+        var tr = btn.closest("tr");
+        if (!tr) return;
+        var idx = Number(tr.getAttribute("data-idx"));
+        var d = ensureDay(state.currentDate);
+        var row = d.sales[idx];
+        if (!row) return;
+
+        if (isSalesFilled(row)) {
+          if (!window.confirm("Delete this sales row?")) return;
+          d.sales.splice(idx, 1);
+          ensureDay(state.currentDate);
+          saveDays();
+          renderSheet();
+        } else if (idx < d.sales.length - 1) {
+          d.sales.splice(idx, 1);
+          ensureDay(state.currentDate);
+          saveDays();
+          renderSheet();
+        }
+      });
+
+      // Expenses Table Delegation (input + click)
+      var expensesTbody = document.getElementById("expenses-tbody");
+      expensesTbody.addEventListener("input", function (e) {
+        var inp = e.target;
+        if (!inp || inp.tagName !== "INPUT") return;
+        var tr = inp.closest("tr");
+        if (!tr) return;
+        var idx = Number(tr.getAttribute("data-idx"));
+        var field = inp.getAttribute("data-field");
+        var d = ensureDay(state.currentDate);
+        if (!d.expenses[idx]) return;
+
+        d.expenses[idx][field] = inp.value;
+        saveDays();
+        updateDayTotalsUI();
+
+        if (idx === d.expenses.length - 1 && isExpenseFilled(d.expenses[idx])) {
+          d.expenses.push(emptyExpenseRow());
+          expensesTbody.appendChild(createExpenseRowEl(d.expenses.length - 1, d.expenses[d.expenses.length - 1]));
+        }
+      });
+
+      expensesTbody.addEventListener("click", function (e) {
+        var btn = e.target.closest('[data-action="del-exp"]');
+        if (!btn) return;
+        var tr = btn.closest("tr");
+        if (!tr) return;
+        var idx = Number(tr.getAttribute("data-idx"));
+        var d = ensureDay(state.currentDate);
+        var row = d.expenses[idx];
+        if (!row) return;
+
+        if (isExpenseFilled(row)) {
+          if (!window.confirm("Delete this expense row?")) return;
+          d.expenses.splice(idx, 1);
+          ensureDay(state.currentDate);
+          saveDays();
+          renderSheet();
+        } else if (idx < d.expenses.length - 1) {
+          d.expenses.splice(idx, 1);
+          ensureDay(state.currentDate);
+          saveDays();
+          renderSheet();
+        }
+      });
+
+      document.getElementById("clear-day-btn").addEventListener("click", function () {
+        if (!window.confirm("Clear all sales, expenses, and opening cash for " + formatDateDisplay(state.currentDate) + "?")) {
+          return;
+        }
+        delete state.days[state.currentDate];
+        saveDays();
+        renderSheet();
+      });
+
+      // 2) REPORTS TAB
+      function renderReports() {
+        var y = state.repYear;
+        var m = state.repMonth;
+        document.getElementById("rep-month-title").textContent = MONTH_NAMES[m] + " " + y;
+
+        var prefix = monthKeyOf(y, m);
+        var mt = computeMonthTotals(y, m);
+
+        document.getElementById("rep-cash").textContent = fmt(mt.cash);
+        document.getElementById("rep-spent").textContent = fmt(mt.spent);
+        document.getElementById("rep-left").textContent = fmt(mt.left);
+        var leftBox = document.getElementById("rep-left-box");
+        leftBox.classList.remove("pos", "neg");
+        leftBox.classList.add(mt.left < 0 ? "neg" : "pos");
+
+        var itemMap = {};
+        var paidMap = {};
+        var keys = Object.keys(state.days);
+        for (var i = 0; i < keys.length; i++) {
+          var k = keys[i];
+          if (k.indexOf(prefix) !== 0) continue;
+          var d = state.days[k];
+
+          var sales = d.sales || [];
+          for (var s = 0; s < sales.length; s++) {
+            var row = sales[s];
+            var rawItem = String(row.item || "").trim();
+            if (!rawItem) continue;
+            var lowItem = rawItem.toLowerCase();
+            if (!itemMap[lowItem]) {
+              itemMap[lowItem] = { label: rawItem, qty: 0, amount: 0 };
+            }
+            itemMap[lowItem].qty += toNum(row.qty);
+            itemMap[lowItem].amount += toNum(row.amount);
+          }
+
+          var exps = d.expenses || [];
+          for (var e = 0; e < exps.length; e++) {
+            var ex = exps[e];
+            var amt = toNum(ex.amount);
+            var rawPaid = String(ex.paidTo || "").trim();
+            if (!rawPaid && amt === 0) continue;
+            var label = rawPaid || "(Unspecified)";
+            var lowPaid = label.toLowerCase();
+            if (!paidMap[lowPaid]) {
+              paidMap[lowPaid] = { label: label, amount: 0 };
+            }
+            paidMap[lowPaid].amount += amt;
+          }
+        }
+
+        var itemList = Object.keys(itemMap).map(function (k) { return itemMap[k]; });
+        itemList.sort(function (a, b) { return b.amount - a.amount; });
+
+        var itemsWrap = document.getElementById("rep-items-wrap");
+        if (!itemList.length) {
+          itemsWrap.innerHTML = '<div class="empty-note">No items sold in this month.</div>';
+        } else {
+          itemsWrap.innerHTML =
+            '<table class="list-table"><thead><tr><th>Item</th><th class="right">Qty</th><th class="right">Amount</th></tr></thead><tbody>' +
+            itemList.map(function (it) {
+              return '<tr><td>' + esc(it.label) + '</td><td class="right">' + esc(fmt(it.qty)) + '</td><td class="right">' + esc(fmt(it.amount)) + '</td></tr>';
+            }).join("") +
+            '</tbody></table>';
+        }
+
+        var paidList = Object.keys(paidMap).map(function (k) { return paidMap[k]; });
+        paidList.sort(function (a, b) { return b.amount - a.amount; });
+
+        var paidWrap = document.getElementById("rep-paid-wrap");
+        if (!paidList.length) {
+          paidWrap.innerHTML = '<div class="empty-note">No expenses recorded in this month.</div>';
+        } else {
+          paidWrap.innerHTML =
+            '<table class="list-table"><thead><tr><th>Person</th><th class="right">Total Paid</th></tr></thead><tbody>' +
+            paidList.map(function (p) {
+              return '<tr><td>' + esc(p.label) + '</td><td class="right">' + esc(fmt(p.amount)) + '</td></tr>';
+            }).join("") +
+            '</tbody></table>';
+        }
+      }
+
+      document.getElementById("rep-prev-month").addEventListener("click", function () {
+        state.repMonth -= 1;
+        if (state.repMonth < 0) {
+          state.repMonth = 11;
+          state.repYear -= 1;
+        }
+        renderReports();
+      });
+
+      document.getElementById("rep-next-month").addEventListener("click", function () {
+        state.repMonth += 1;
+        if (state.repMonth > 11) {
+          state.repMonth = 0;
+          state.repYear += 1;
+        }
+        renderReports();
+      });
+
+      // 3) UDHAAR TAB
+      function showStatus(id, msg, isErr) {
+        var el = document.getElementById(id);
+        el.textContent = msg;
+        el.className = "status-msg show " + (isErr ? "err" : "ok");
+      }
+
+      function hideStatus(id) {
+        var el = document.getElementById(id);
+        el.className = "status-msg";
+        el.textContent = "";
+      }
+
+      function saveUdhaar() {
+        saveJson(STORAGE_KEYS.udhaar, state.udhaar);
+      }
+
+      function renderUdhaar() {
+        var peopleMap = {};
+        var totalNet = 0;
+        var nameSet = {};
+        var namesArr = [];
+
+        for (var i = 0; i < state.udhaar.length; i++) {
+          var entry = state.udhaar[i];
+          var rawName = String(entry.name || "").trim();
+          if (!rawName) continue;
+          var low = rawName.toLowerCase();
+          if (!nameSet[low]) {
+            nameSet[low] = true;
+            namesArr.push(rawName);
+          }
+          if (!peopleMap[low]) {
+            peopleMap[low] = { name: rawName, gave: 0, recv: 0 };
+          }
+          var amt = toNum(entry.amount);
+          if (entry.type === "gave") {
+            peopleMap[low].gave += amt;
+            totalNet += amt;
+          } else {
+            peopleMap[low].recv += amt;
+            totalNet -= amt;
+          }
+        }
+
+        document.getElementById("udhaar-names-datalist").innerHTML = namesArr.map(function (n) {
+          return '<option value="' + esc(n) + '"></option>';
+        }).join("");
+
+        document.getElementById("udhaar-total-receive").textContent = fmt(totalNet);
+
+        var people = Object.keys(peopleMap).map(function (k) {
+          var p = peopleMap[k];
+          return { name: p.name, bal: p.gave - p.recv };
+        });
+        people.sort(function (a, b) { return b.bal - a.bal; });
+
+        var balEl = document.getElementById("udhaar-balances-list");
+        if (!people.length) {
+          balEl.innerHTML = '<div class="empty-note">No credit entries yet.</div>';
+        } else {
+          balEl.innerHTML = people.map(function (p) {
+            var subHtml;
+            var dispAmt = fmt(Math.abs(p.bal));
+            if (p.bal > 1e-9) {
+              subHtml = '<div class="person-sub owe">will pay you</div>';
+            } else if (p.bal < -1e-9) {
+              subHtml = '<div class="person-sub adv">advance paid</div>';
+            } else {
+              subHtml = '<div class="person-sub settled">settled</div>';
+              dispAmt = "0";
+            }
+            return '<div class="person-row">' +
+              '<div><div class="person-name">' + esc(p.name) + '</div>' + subHtml + '</div>' +
+              '<div class="person-bal">' + esc(dispAmt) + '</div>' +
+              '</div>';
+          }).join("");
+        }
+
+        var histEl = document.getElementById("udhaar-history-list");
+        if (!state.udhaar.length) {
+          histEl.innerHTML = '<div class="empty-note">No history yet.</div>';
+        } else {
+          var sorted = state.udhaar.slice().sort(function (a, b) {
+            return (b.ts || 0) - (a.ts || 0);
+          });
+          histEl.innerHTML = sorted.map(function (item) {
+            var isGave = item.type === "gave";
+            var typeLabel = isGave ? "Gave credit" : "Received back";
+            var typeCls = isGave ? "badge-gave" : "badge-recv";
+            return '<div class="history-item">' +
+              '<div class="history-meta">' +
+              '<div class="history-title">' + esc(item.name) + '</div>' +
+              '<div class="history-sub">' + esc(formatDateDisplay(item.date)) + ' · <span class="' + typeCls + '">' + typeLabel + '</span></div>' +
+              '</div>' +
+              '<div class="history-right">' +
+              '<span class="person-bal">' + esc(fmt(item.amount)) + '</span>' +
+              '<button type="button" class="small-del-btn" data-del-udhaar="' + esc(item.id) + '" aria-label="Delete entry">✕</button>' +
+              '</div></div>';
+          }).join("");
+        }
+      }
+
+      function addUdhaarEntry(type) {
+        var nameInp = document.getElementById("udhaar-name-input");
+        var amtInp = document.getElementById("udhaar-amount-input");
+        var name = nameInp.value.trim();
+        var amt = toNum(amtInp.value);
+
+        if (!name) {
+          showStatus("udhaar-status", "Please enter a person's name.", true);
+          nameInp.focus();
+          return;
+        }
+        if (amt <= 0) {
+          showStatus("udhaar-status", "Please enter an amount greater than 0.", true);
+          amtInp.focus();
+          return;
+        }
+
+        hideStatus("udhaar-status");
+        state.udhaar.push({
+          id: Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 7),
+          date: getTodayKey(),
+          name: name,
+          type: type,
+          amount: amt,
+          ts: Date.now()
+        });
+        saveUdhaar();
+        nameInp.value = "";
+        amtInp.value = "";
+        renderUdhaar();
+      }
+
+      document.getElementById("udhaar-gave-btn").addEventListener("click", function () {
+        addUdhaarEntry("gave");
+      });
+
+      document.getElementById("udhaar-recv-btn").addEventListener("click", function () {
+        addUdhaarEntry("received");
+      });
+
+      document.getElementById("udhaar-history-list").addEventListener("click", function (e) {
+        var btn = e.target.closest("[data-del-udhaar]");
+        if (!btn) return;
+        var id = btn.getAttribute("data-del-udhaar");
+        if (!window.confirm("Delete this udhaar entry?")) return;
+        state.udhaar = state.udhaar.filter(function (x) { return x.id !== id; });
+        saveUdhaar();
+        renderUdhaar();
+      });
+
+      // 4) SEARCH TAB
+      function runSearch() {
+        var q = document.getElementById("search-input").value.trim().toLowerCase();
+        var countEl = document.getElementById("search-count");
+        var resEl = document.getElementById("search-results");
+
+        if (!q) {
+          countEl.textContent = "Results";
+          resEl.innerHTML = '<div class="empty-note">Type to search across all days and udhaar names.</div>';
+          return;
+        }
+
+        var results = [];
+        var dayKeys = Object.keys(state.days).sort().reverse();
+
+        for (var i = 0; i < dayKeys.length && results.length < 100; i++) {
+          var dk = dayKeys[i];
+          var d = state.days[dk];
+          var sales = d.sales || [];
+          for (var s = 0; s < sales.length && results.length < 100; s++) {
+            var sr = sales[s];
+            if (!isSalesFilled(sr)) continue;
+            var slip = String(sr.slip || "");
+            var item = String(sr.item || "");
+            var qty = String(sr.qty || "");
+            if (
+              slip.toLowerCase().indexOf(q) !== -1 ||
+              item.toLowerCase().indexOf(q) !== -1 ||
+              qty.toLowerCase().indexOf(q) !== -1
+            ) {
+              var amtDisp = toNum(sr.amount) || toNum(sr.cash);
+              var mainParts = [];
+              if (item) mainParts.push(item);
+              if (qty) mainParts.push("Qty: " + qty);
+              if (slip) mainParts.push("Slip #" + slip);
+              results.push({
+                date: dk,
+                title: mainParts.join(" · ") || "Sale",
+                sub: formatDateDisplay(dk) + " · Sale",
+                amount: fmt(amtDisp)
+              });
+            }
+          }
+
+          var exps = d.expenses || [];
+          for (var e = 0; e < exps.length && results.length < 100; e++) {
+            var er = exps[e];
+            if (!isExpenseFilled(er)) continue;
+            var what = String(er.what || "");
+            var paidTo = String(er.paidTo || "");
+            if (
+              what.toLowerCase().indexOf(q) !== -1 ||
+              paidTo.toLowerCase().indexOf(q) !== -1
+            ) {
+              var expTitle = [what, paidTo ? "To: " + paidTo : ""].filter(Boolean).join(" · ") || "Expense";
+              results.push({
+                date: dk,
+                title: expTitle,
+                sub: formatDateDisplay(dk) + " · Expense",
+                amount: fmt(er.amount)
+              });
+            }
+          }
+        }
+
+        var udhaarSorted = state.udhaar.slice().sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
+        for (var u = 0; u < udhaarSorted.length && results.length < 100; u++) {
+          var ur = udhaarSorted[u];
+          if (String(ur.name || "").toLowerCase().indexOf(q) !== -1) {
+            results.push({
+              date: ur.date,
+              title: ur.name + " (" + (ur.type === "gave" ? "Gave credit" : "Received back") + ")",
+              sub: formatDateDisplay(ur.date) + " · Udhaar",
+              amount: fmt(ur.amount)
+            });
+          }
+        }
+
+        countEl.textContent = "Results (" + results.length + (results.length === 100 ? " max" : "") + ")";
+        if (!results.length) {
+          resEl.innerHTML = '<div class="empty-note">No matching records found.</div>';
+        } else {
+          resEl.innerHTML = results.map(function (r) {
+            return '<button type="button" class="search-result-btn" data-open-date="' + esc(r.date) + '">' +
+              '<div class="search-res-left">' +
+              '<div class="search-res-main">' + esc(r.title) + '</div>' +
+              '<div class="search-res-sub">' + esc(r.sub) + '</div>' +
+              '</div>' +
+              '<div class="search-res-amt">' + esc(r.amount) + '</div>' +
+              '</button>';
+          }).join("");
+        }
+      }
+
+      document.getElementById("search-input").addEventListener("input", runSearch);
+
+      document.getElementById("search-results").addEventListener("click", function (e) {
+        var btn = e.target.closest("[data-open-date]");
+        if (!btn) return;
+        state.currentDate = btn.getAttribute("data-open-date");
+        var d = parseDateKey(state.currentDate);
+        state.calYear = d.getFullYear();
+        state.calMonth = d.getMonth();
+        switchTab("sheet");
+      });
+
+      // 5) MORE TAB
+      function copyTextWithFallback(text, textareaEl, statusId) {
+        if (!text) {
+          showStatus(statusId, "Nothing to copy. Generate the text first.", true);
+          return;
+        }
+        var copied = false;
+        try {
+          textareaEl.focus();
+          textareaEl.select();
+          if (textareaEl.setSelectionRange) {
+            textareaEl.setSelectionRange(0, text.length);
+          }
+          copied = document.execCommand("copy");
+        } catch (e) {
+          copied = false;
+        }
+
+        if (copied) {
+          showStatus(statusId, "Copied to clipboard.", false);
+          return;
+        }
+
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+          navigator.clipboard.writeText(text).then(function () {
+            showStatus(statusId, "Copied to clipboard.", false);
+          }).catch(function () {
+            showStatus(statusId, "Copy failed. Please select and copy the text manually.", true);
+          });
+        } else {
+          showStatus(statusId, "Copy failed. Please select and copy the text manually.", true);
+        }
+      }
+
+      document.getElementById("gen-backup-btn").addEventListener("click", function () {
+        saveDays();
+        var cleanDays = loadJson(STORAGE_KEYS.days, {});
+        var payload = {
+          app: "ShopLedger",
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          days: cleanDays,
+          quickItems: state.quickItems,
+          learnedItems: state.learnedItems,
+          udhaar: state.udhaar
+        };
+        document.getElementById("backup-textarea").value = JSON.stringify(payload);
+        showStatus("backup-status", "Backup code generated.", false);
+      });
+
+      document.getElementById("copy-backup-btn").addEventListener("click", function () {
+        var ta = document.getElementById("backup-textarea");
+        copyTextWithFallback(ta.value, ta, "backup-status");
+      });
+
+      function tsvSafe(v) {
+        return String(v === undefined || v === null ? "" : v).replace(/[\t\r\n]+/g, " ");
+      }
+
+      document.getElementById("gen-excel-btn").addEventListener("click", function () {
+        var lines = [
+          ["Date", "Type", "Slip No", "Cash", "Item / What", "Qty / Paid to", "Amount"].join("\t")
+        ];
+        var dayKeys = Object.keys(state.days).sort();
+        for (var i = 0; i < dayKeys.length; i++) {
+          var dk = dayKeys[i];
+          var d = state.days[dk];
+          var sales = d.sales || [];
+          for (var s = 0; s < sales.length; s++) {
+            var sr = sales[s];
+            if (!isSalesFilled(sr)) continue;
+            lines.push([
+              dk,
+              "Sale",
+              tsvSafe(sr.slip),
+              tsvSafe(sr.cash),
+              tsvSafe(sr.item),
+              tsvSafe(sr.qty),
+              tsvSafe(sr.amount)
+            ].join("\t"));
+          }
+          var exps = d.expenses || [];
+          for (var e = 0; e < exps.length; e++) {
+            var er = exps[e];
+            if (!isExpenseFilled(er)) continue;
+            lines.push([
+              dk,
+              "Expense",
+              "",
+              "",
+              tsvSafe(er.what),
+              tsvSafe(er.paidTo),
+              tsvSafe(er.amount)
+            ].join("\t"));
+          }
+        }
+        document.getElementById("excel-textarea").value = lines.join("\n");
+        showStatus("excel-status", "Excel text generated (" + (lines.length - 1) + " rows).", false);
+      });
+
+      document.getElementById("copy-excel-btn").addEventListener("click", function () {
+        var ta = document.getElementById("excel-textarea");
+        copyTextWithFallback(ta.value, ta, "excel-status");
+      });
+
+      document.getElementById("restore-btn").addEventListener("click", function () {
+        var raw = document.getElementById("restore-textarea").value.trim();
+        if (!raw) {
+          showStatus("restore-status", "Please paste a backup code first.", true);
+          return;
+        }
+        var parsed;
+        try {
+          parsed = JSON.parse(raw);
+        } catch (e) {
+          showStatus("restore-status", "Invalid backup code: not valid JSON.", true);
+          return;
+        }
+        if (
+          !parsed ||
+          typeof parsed !== "object" ||
+          Array.isArray(parsed) ||
+          !parsed.days ||
+          typeof parsed.days !== "object" ||
+          Array.isArray(parsed.days)
+        ) {
+          showStatus("restore-status", "Invalid backup format: missing days data.", true);
+          return;
+        }
+        if (parsed.udhaar !== undefined && !Array.isArray(parsed.udhaar)) {
+          showStatus("restore-status", "Invalid backup format: udhaar must be a list.", true);
+          return;
+        }
+        if (parsed.quickItems !== undefined && !Array.isArray(parsed.quickItems)) {
+          showStatus("restore-status", "Invalid backup format: quickItems must be a list.", true);
+          return;
+        }
+
+        if (!window.confirm("Replace all current data with this backup? This cannot be undone.")) {
+          return;
+        }
+
+        state.days = parsed.days || {};
+        state.quickItems = Array.isArray(parsed.quickItems)
+          ? parsed.quickItems.map(function (x) { return String(x).trim(); }).filter(Boolean)
+          : DEFAULT_QUICK_ITEMS.slice();
+        state.learnedItems = Array.isArray(parsed.learnedItems)
+          ? parsed.learnedItems.map(function (x) { return String(x).trim(); }).filter(Boolean)
+          : [];
+        state.udhaar = Array.isArray(parsed.udhaar) ? parsed.udhaar : [];
+
+        saveDays();
+        saveJson(STORAGE_KEYS.quickItems, state.quickItems);
+        saveJson(STORAGE_KEYS.learnedItems, state.learnedItems);
+        saveUdhaar();
+
+        document.getElementById("restore-textarea").value = "";
+        renderMore();
+        renderSheet();
+        showStatus("restore-status", "Backup restored successfully.", false);
+      });
+
+      document.getElementById("save-quick-btn").addEventListener("click", function () {
+        var raw = document.getElementById("quick-editor-textarea").value;
+        var seen = {};
+        var list = [];
+        raw.split(",").forEach(function (part) {
+          var t = part.trim();
+          if (!t) return;
+          var low = t.toLowerCase();
+          if (!seen[low]) {
+            seen[low] = true;
+            list.push(t);
+          }
+        });
+        state.quickItems = list;
+        saveJson(STORAGE_KEYS.quickItems, state.quickItems);
+        renderQuickItemsBar();
+        renderItemsDatalist();
+        showStatus("quick-status", "Quick items saved (" + list.length + ").", false);
+      });
+
+      function renderMore() {
+        document.getElementById("quick-editor-textarea").value = state.quickItems.join(", ");
+        var pinSet = !!(state.pin && state.pin.length >= 3);
+        document.getElementById("remove-pin-btn").disabled = !pinSet;
+        document.getElementById("lock-now-btn").disabled = !pinSet;
+        if (pinSet) {
+          showStatus("pin-status", "PIN lock is active.", false);
+        } else {
+          hideStatus("pin-status");
+        }
+      }
+
+      // PIN Lock
+      document.getElementById("set-pin-btn").addEventListener("click", function () {
+        var inp = document.getElementById("pin-set-input");
+        var val = inp.value.trim();
+        if (!/^\d{3,}$/.test(val)) {
+          showStatus("pin-status", "PIN must be at least 3 digits (numbers only).", true);
+          return;
+        }
+        state.pin = val;
+        storageSet(STORAGE_KEYS.pin, val);
+        inp.value = "";
+        renderMore();
+        showStatus("pin-status", "PIN saved and enabled.", false);
+      });
+
+      document.getElementById("remove-pin-btn").addEventListener("click", function () {
+        if (!state.pin) return;
+        if (!window.confirm("Remove PIN lock?")) return;
+        state.pin = "";
+        storageRemove(STORAGE_KEYS.pin);
+        renderMore();
+        showStatus("pin-status", "PIN lock removed.", false);
+      });
+
+      function showLockScreen() {
+        if (!state.pin || state.pin.length < 3) return;
+        var screen = document.getElementById("lock-screen");
+        var inp = document.getElementById("lock-pin-input");
+        inp.value = "";
+        hideStatus("lock-error");
+        screen.hidden = false;
+        setTimeout(function () { inp.focus(); }, 50);
+      }
+
+      function attemptUnlock() {
+        var inp = document.getElementById("lock-pin-input");
+        if (inp.value === state.pin) {
+          document.getElementById("lock-screen").hidden = true;
+          inp.value = "";
+          hideStatus("lock-error");
+        } else {
+          showStatus("lock-error", "Incorrect PIN. Try again.", true);
+          inp.value = "";
+          inp.focus();
+        }
+      }
+
+      document.getElementById("lock-now-btn").addEventListener("click", showLockScreen);
+      document.getElementById("lock-unlock-btn").addEventListener("click", attemptUnlock);
+      document.getElementById("lock-pin-input").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") attemptUnlock();
+      });
+
+      document.getElementById("lock-keypad").addEventListener("click", function (e) {
+        var btn = e.target.closest("[data-key]");
+        if (!btn) return;
+        var k = btn.getAttribute("data-key");
+        var inp = document.getElementById("lock-pin-input");
+        if (k === "clear") {
+          inp.value = "";
+        } else if (k === "back") {
+          inp.value = inp.value.slice(0, -1);
+        } else {
+          inp.value += k;
+        }
+        hideStatus("lock-error");
+      });
+
+      // Tab Navigation
+      function switchTab(tabName) {
+        state.activeTab = tabName;
+        var tabs = document.querySelectorAll(".nav-tab");
+        for (var i = 0; i < tabs.length; i++) {
+          var t = tabs[i];
+          if (t.getAttribute("data-tab") === tabName) {
+            t.classList.add("active");
+          } else {
+            t.classList.remove("active");
+          }
+        }
+        var panels = document.querySelectorAll(".tab-panel");
+        for (var j = 0; j < panels.length; j++) {
+          var p = panels[j];
+          if (p.id === "tab-" + tabName) {
+            p.classList.add("active");
+          } else {
+            p.classList.remove("active");
+          }
+        }
+
+        if (tabName === "sheet") {
+          renderSheet();
+        } else if (tabName === "reports") {
+          renderReports();
+        } else if (tabName === "udhaar") {
+          renderUdhaar();
+        } else if (tabName === "search") {
+          runSearch();
+        } else if (tabName === "more") {
+          renderMore();
+        }
+      }
+
+      document.querySelector(".nav-tabs").addEventListener("click", function (e) {
+        var btn = e.target.closest(".nav-tab");
+        if (!btn) return;
+        switchTab(btn.getAttribute("data-tab"));
+      });
+
+      // Initial Boot
+      renderSheet();
+      if (state.pin && state.pin.length >= 3) {
+        showLockScreen();
+      }
+    })();
+  </script>
+</body>
+</html>
